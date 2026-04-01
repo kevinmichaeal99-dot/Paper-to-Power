@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper to Power — Video Builder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --sky: #EBF6FF;
+    --sky-mid: #D0EAFA;
+    --sky-deep: #B8DEFF;
+    --blue: #4A9EDB;
+    --blue-dark: #2B7DC0;
+    --blue-deep: #1A5F9A;
+    --white: #FFFFFF;
+    --text: #1E2D3D;
+    --text-light: #4A6580;
+    --text-lighter: #7A9AB5;
+    --accent: #FF7B5C;
+    --accent-light: #FFF0EC;
+    --green: #34C77B;
+    --green-light: #E8FAF1;
+    --border: #D8EAF7;
+    --shadow: 0 4px 24px rgba(74,158,219,0.1);
+    --shadow-hover: 0 8px 40px rgba(74,158,219,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(160deg, #EBF6FF 0%, #D8EEFA 40%, #E8F4FF 100%);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 10% 10%, rgba(74,158,219,0.12) 0%, transparent 50%), radial-gradient(ellipse at 90% 90%, rgba(52,199,123,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 50px 24px 80px; position: relative; z-index: 1; }
+
+  .header { text-align: center; margin-bottom: 48px; }
+
+  .logo-badge { display: inline-flex; align-items: center; gap: 8px; background: white; border: 1.5px solid var(--border); border-radius: 50px; padding: 8px 18px; margin-bottom: 22px; box-shadow: var(--shadow); }
+
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: pulse 2s ease-in-out infinite; }
+
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.7} }
+
+  .logo-text { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--blue-dark); }
+
+  h1 { font-family: 'Lora', serif; font-size: clamp(34px, 6vw, 56px); font-weight: 600; line-height: 1.1; margin-bottom: 14px; }
+
+  h1 span { color: var(--blue); font-style: italic; }
+
+  .subtitle { font-size: 16px; color: var(--text-light); max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+  /* Input tabs */
+  .input-tabs { display: flex; background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 6px; margin-bottom: 18px; box-shadow: var(--shadow); gap: 6px; }
+
+  .tab-btn { flex: 1; padding: 11px 12px; border: none; border-radius: 11px; background: transparent; color: var(--text-lighter); font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+
+  .tab-btn.active { background: var(--blue); color: white; box-shadow: 0 4px 16px rgba(74,158,219,0.3); }
+
+  .tab-btn:hover:not(.active) { background: var(--sky); color: var(--blue-dark); }
+
+  /* Cards */
+  .card { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 30px; margin-bottom: 18px; box-shadow: var(--shadow); transition: all 0.3s; }
+
+  .card:hover { box-shadow: var(--shadow-hover); border-color: var(--sky-deep); }
+
+  .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+
+  .card-icon { width: 42px; height: 42px; background: var(--sky); border: 1.5px solid var(--sky-deep); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+
+  .card-title { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; }
+
+  .card-desc { font-size: 13px; color: var(--text-lighter); margin-top: 2px; }
+
+  .input-panel { display: none; }
+  .input-panel.active { display: block; }
+
+  label { display: block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue-dark); margin-bottom: 8px; font-weight: 800; }
+
+  textarea { width: 100%; background: var(--sky); border: 1.5px solid var(--sky-deep); border-radius: 12px; padding: 15px 17px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; line-height: 1.7; resize: vertical; min-height: 170px; transition: all 0.3s; outline: none; }
+
+  textarea:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(74,158,219,0.12); }
+
+  textarea::placeholder { color: var(--text-lighter); }
+
+  /* Voice */
+  .voice-section { text-align: center; padding: 8px 0; }
+
+  .mic-btn { width: 76px; height: 76px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--blue), var(--blue-dark)); color: white; font-size: 26px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 20px rgba(74,158,219,0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; position: relative; }
+
+  .mic-btn:hover { transform: scale(1.05); }
+
+  .mic-btn.recording { background: linear-gradient(135deg, #FF5C5C, #CC3333); box-shadow: 0 4px 20px rgba(255,92,92,0.5); animation: rec-pulse 1.5s ease-in-out infinite; }
+
+  @keyframes rec-pulse { 0%,100%{box-shadow:0 4px 20px rgba(255,92,92,0.5)} 50%{box-shadow:0 4px 40px rgba(255,92,92,0.8)} }
+
+  .mic-ring { display: none; position: absolute; inset: -8px; border-radius: 50%; border: 2px solid rgba(255,92,92,0.4); animation: ring 1.5s ease-out infinite; }
+
+  .mic-btn.recording .mic-ring { display: block; }
+
+  @keyframes ring { 0%{transform:scale(1);opacity:1} 100%{transform:scale(1.4);opacity:0} }
+
+  .mic-status { font-size: 14px; font-weight: 700; color: var(--text-light); margin-bottom: 10px; }
+
+  .mic-status.recording { color: #FF5C5C; }
+
+  .voice-hint { font-size: 13px; color: var(--text-lighter); line-height: 1.5; }
+
+  .transcript-box { background: var(--sky); border: 1.5px solid var(--sky-deep); border-radius: 12px; padding: 15px 17px; min-height: 90px; font-size: 14px; line-height: 1.7; text-align: left; margin-top: 14px; display: none; }
+
+  .transcript-box.visible { display: block; }
+
+  .transcript-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); margin-bottom: 7px; }
+
+  /* Audio upload */
+  .audio-upload { border: 2px dashed var(--sky-deep); border-radius: 13px; padding: 26px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; background: var(--sky); }
+
+  .audio-upload:hover, .audio-upload.dragover { border-color: var(--blue); background: var(--sky-mid); }
+
+  .audio-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  .upload-icon { font-size: 26px; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; color: var(--text-light); margin-bottom: 4px; font-weight: 600; }
+  .upload-hint { font-size: 12px; color: var(--text-lighter); }
+
+  .audio-loaded { display: flex; align-items: center; gap: 10px; background: var(--green-light); border: 1.5px solid rgba(52,199,123,0.3); border-radius: 10px; padding: 11px 15px; margin-top: 12px; }
+
+  .audio-loaded .check { color: var(--green); }
+  .audio-loaded span { font-size: 14px; font-weight: 600; }
+
+  /* Duration */
+  .duration-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; margin-top: 16px; }
+
+  input[type="number"] { width: 100%; background: var(--sky); border: 1.5px solid var(--sky-deep); border-radius: 10px; padding: 12px 15px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 700; outline: none; transition: all 0.3s; }
+
+  input[type="number"]:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(74,158,219,0.12); }
+
+  .input-hint { font-size: 11px; color: var(--text-lighter); margin-top: 5px; }
+
+  /* Platform selector */
+  .platform-section { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 26px; margin-bottom: 18px; box-shadow: var(--shadow); }
+
+  .platform-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+
+  .platform-desc { font-size: 13px; color: var(--text-lighter); margin-bottom: 16px; }
+
+  .platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); gap: 9px; }
+
+  .platform-chip { display: flex; align-items: center; gap: 7px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 11px; cursor: pointer; transition: all 0.2s; background: var(--sky); user-select: none; }
+
+  .platform-chip:hover { border-color: var(--blue); background: var(--sky-mid); }
+
+  .platform-chip.selected { border-color: var(--blue); background: rgba(74,158,219,0.08); }
+
+  .platform-chip input { display: none; }
+
+  .platform-icon { font-size: 17px; }
+
+  .platform-name { font-size: 13px; font-weight: 700; }
+
+  .platform-check { margin-left: auto; width: 17px; height: 17px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 9px; color: transparent; transition: all 0.2s; flex-shrink: 0; }
+
+  .platform-chip.selected .platform-check { background: var(--blue); border-color: var(--blue); color: white; }
+
+  /* Generate */
+  .btn-primary { width: 100%; padding: 17px; background: linear-gradient(135deg, var(--blue), var(--blue-dark)); border: none; border-radius: 13px; color: white; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 20px rgba(74,158,219,0.35); }
+
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(74,158,219,0.45); }
+
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .error-msg { background: var(--accent-light); border: 1.5px solid #FFCABC; border-radius: 10px; padding: 11px 15px; font-size: 14px; color: var(--accent); margin-top: 13px; display: none; font-weight: 600; }
+
+  .error-msg.visible { display: block; }
+
+  /* Loading */
+  .loading { display: none; text-align: center; padding: 48px 20px; background: white; border-radius: 20px; border: 1.5px solid var(--border); box-shadow: var(--shadow); margin-top: 18px; }
+
+  .loading.visible { display: block; }
+
+  .loading-spinner { width: 48px; height: 48px; border: 3px solid var(--sky-deep); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .loading-text { font-family: 'Lora', serif; font-size: 19px; font-style: italic; margin-bottom: 5px; }
+  .loading-sub { font-size: 14px; color: var(--text-lighter); }
+
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--sky-deep), transparent); margin: 38px 0; }
+
+  /* Results */
+  .results-container { display: none; }
+  .results-container.visible { display: block; }
+
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
+
+  .results-title { font-family: 'Lora', serif; font-size: 25px; font-weight: 600; }
+
+  .results-meta { font-size: 13px; font-weight: 700; color: var(--blue-dark); background: var(--sky); padding: 5px 15px; border-radius: 20px; border: 1.5px solid var(--sky-deep); }
+
+  .result-tabs { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
+
+  .result-tab { padding: 7px 17px; border: 1.5px solid var(--border); border-radius: 20px; background: white; color: var(--text-light); font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+
+  .result-tab.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+  .result-tab:hover:not(.active) { border-color: var(--blue); color: var(--blue-dark); }
+
+  .result-panel { display: none; }
+  .result-panel.active { display: block; }
+
+  /* Scene cards */
+  .scene-list { display: flex; flex-direction: column; gap: 13px; margin-bottom: 26px; }
+
+  .scene-card { background: white; border: 1.5px solid var(--border); border-radius: 15px; padding: 19px 21px; transition: all 0.3s; box-shadow: 0 2px 10px rgba(74,158,219,0.06); }
+
+  .scene-card:hover { border-color: var(--sky-deep); box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+
+  .scene-top { display: flex; align-items: start; gap: 15px; margin-bottom: 11px; }
+
+  .scene-num { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; color: var(--sky-deep); line-height: 1; flex-shrink: 0; width: 38px; }
+
+  .scene-main { flex: 1; }
+
+  .scene-time { font-size: 11px; font-weight: 800; color: var(--blue); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+
+  .scene-search { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+
+  .scene-why { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+
+  .scene-duration { font-size: 13px; font-weight: 800; color: var(--text-light); background: var(--sky); padding: 4px 11px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+
+  .scene-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  .search-link { font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--border); color: var(--text-light); text-decoration: none; transition: all 0.2s; background: var(--sky); font-family: 'Nunito', sans-serif; }
+
+  .search-link:hover { border-color: var(--blue); color: var(--blue-dark); }
+
+  .cant-find-btn { font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 20px; border: 1.5px solid #FFCABC; color: var(--accent); background: var(--accent-light); cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; }
+
+  .cant-find-btn:hover { background: #FFE0D8; border-color: var(--accent); }
+
+  .help-box { display: none; background: var(--accent-light); border: 1.5px solid #FFCABC; border-radius: 11px; padding: 15px 17px; margin-top: 11px; }
+
+  .help-box.visible { display: block; }
+
+  .help-box-title { font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 9px; }
+
+  .help-steps { display: flex; flex-direction: column; gap: 8px; }
+
+  .help-step { display: flex; gap: 9px; align-items: start; }
+
+  .help-step-num { width: 19px; height: 19px; border-radius: 50%; background: var(--accent); color: white; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  .help-step-text { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+
+  .help-step-text strong { color: var(--text); font-weight: 700; }
+
+  .help-loading { text-align: center; padding: 14px; color: var(--text-lighter); font-size: 13px; }
+
+  .help-spinner { width: 22px; height: 22px; border: 2px solid #FFCABC; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 7px; }
+
+  /* Social grid */
+  .social-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 15px; margin-bottom: 26px; }
+
+  .social-card { background: white; border: 1.5px solid var(--border); border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(74,158,219,0.06); transition: all 0.3s; }
+
+  .social-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+
+  .social-card-header { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
+
+  .social-icon { font-size: 20px; }
+
+  .social-name { font-family: 'Lora', serif; font-size: 16px; font-weight: 600; }
+
+  .social-spec { display: flex; flex-direction: column; gap: 7px; }
+
+  .spec-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--sky); border-radius: 8px; }
+
+  .spec-key { font-size: 11px; color: var(--text-lighter); font-weight: 600; }
+  .spec-val { font-size: 12px; font-weight: 800; }
+
+  .social-tip { margin-top: 11px; padding: 9px 11px; background: var(--green-light); border: 1px solid rgba(52,199,123,0.2); border-radius: 9px; font-size: 12px; color: var(--text-light); line-height: 1.5; }
+
+  .social-tip strong { color: var(--green); }
+
+  /* Export guide */
+  .export-guide { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 26px; margin-top: 10px; box-shadow: var(--shadow); }
+
+  .export-title { font-family: 'Lora', serif; font-size: 19px; font-weight: 600; margin-bottom: 18px; }
+
+  .export-steps { display: flex; flex-direction: column; gap: 13px; }
+
+  .export-step { display: flex; gap: 13px; align-items: start; }
+
+  .export-step-num { width: 27px; height: 27px; border-radius: 50%; background: var(--sky); border: 1.5px solid var(--sky-deep); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--blue-dark); flex-shrink: 0; margin-top: 1px; }
+
+  .export-step-text { font-size: 14px; color: var(--text-light); line-height: 1.6; }
+
+  .export-step-text strong { color: var(--text); font-weight: 700; }
+
+  /* Download */
+  .download-section { background: linear-gradient(135deg, var(--blue), var(--blue-deep)); border-radius: 20px; padding: 30px; text-align: center; margin-top: 18px; box-shadow: 0 8px 30px rgba(74,158,219,0.3); }
+
+  .download-title { font-family: 'Lora', serif; font-size: 21px; font-weight: 600; color: white; margin-bottom: 7px; }
+
+  .download-desc { font-size: 14px; color: rgba(255,255,255,0.75); margin-bottom: 20px; line-height: 1.6; }
+
+  .btn-download { display: inline-block; padding: 13px 30px; background: white; border: none; border-radius: 11px; color: var(--blue-dark); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+  .btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+
+  @media(max-width:600px) {
+    .container { padding: 28px 14px 60px; }
+    .duration-row { grid-template-columns: 1fr; }
+    .platform-grid { grid-template-columns: repeat(2,1fr); }
+    .social-grid { grid-template-columns: 1fr; }
+    .tab-btn { font-size: 12px; padding: 10px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo-badge">
+      <div class="logo-dot"></div>
+      <div class="logo-text">Paper to Power</div>
+    </div>
+    <h1>Turn Any Idea Into a <span>Real Video</span></h1>
+    <p class="subtitle">Type your script, speak it out loud, or upload your audio. Get a complete shot-by-shot production plan — with step-by-step help whenever you get stuck.</p>
+  </div>
+
+  <!-- Input tabs -->
+  <div class="input-tabs">
+    <button class="tab-btn active" onclick="switchTab('script')">✍️ Type Script</button>
+    <button class="tab-btn" onclick="switchTab('voice')">🎙️ Speak It</button>
+    <button class="tab-btn" onclick="switchTab('upload')">📁 Upload Audio</button>
+  </div>
+
+  <!-- Main input card -->
+  <div class="card">
+
+    <!-- Script panel -->
+    <div class="input-panel active" id="tab-script">
+      <div class="card-header">
+        <div class="card-icon">📝</div>
+        <div>
+          <div class="card-title">Type Your Script</div>
+          <div class="card-desc">Paste or type your full narration text</div>
+        </div>
+      </div>
+      <label>Script Text</label>
+      <textarea id="scriptInput" placeholder="Paste your full video script here. The AI reads every line and builds the perfect image for each moment of your story..."></textarea>
+    </div>
+
+    <!-- Voice panel -->
+    <div class="input-panel" id="tab-voice">
+      <div class="card-header">
+        <div class="card-icon">🎙️</div>
+        <div>
+          <div class="card-title">Speak Your Script</div>
+          <div class="card-desc">Talk naturally — Chrome transcribes in real time</div>
+        </div>
+      </div>
+      <div class="voice-section">
+        <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+          🎙️
+          <div class="mic-ring"></div>
+        </button>
+        <div class="mic-status" id="micStatus">Click to start speaking</div>
+        <div class="voice-hint">Speak your script or play your audio near the mic. Chrome transcribes everything live.</div>
+        <div class="transcript-box" id="transcriptBox">
+          <div class="transcript-label">Transcribed Text</div>
+          <div id="transcriptText"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload panel -->
+    <div class="input-panel" id="tab-upload">
+      <div class="card-header">
+        <div class="card-icon">📁</div>
+        <div>
+          <div class="card-title">Upload Audio File</div>
+          <div class="card-desc">Upload your ElevenLabs MP3</div>
+        </div>
+      </div>
+      <div class="audio-upload" id="audioUpload">
+        <input type="file" id="audioFile" accept="audio/*">
+        <div class="upload-icon">🎵</div>
+        <div class="upload-text">Drop your MP3 here or click to browse</div>
+        <div class="upload-hint">MP3, WAV, M4A supported</div>
+      </div>
+      <div class="audio-loaded" id="audioLoaded" style="display:none">
+        <span class="check">✓</span>
+        <span id="audioFileName">Audio loaded</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-lighter);margin-top:13px;line-height:1.5;">
+        💡 <strong style="color:var(--text-light)">Tip:</strong> Also paste your script in the Type Script tab for the most accurate shot list. Audio alone works too.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Duration -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">⏱️</div>
+      <div>
+        <div class="card-title">Video Duration</div>
+        <div class="card-desc">How long is your audio? Leave blank if you don't know yet</div>
+      </div>
+    </div>
+    <div class="duration-row">
+      <div>
+        <label>Minutes</label>
+        <input type="number" id="durationMin" placeholder="6" min="0" max="60">
+        <div class="input-hint">e.g. 6 for a 6:11 video</div>
+      </div>
+      <div>
+        <label>Seconds</label>
+        <input type="number" id="durationSec" placeholder="11" min="0" max="59">
+        <div class="input-hint">e.g. 11 for a 6:11 video</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Platforms -->
+  <div class="platform-section">
+    <div class="platform-title">🎯 Which platforms are you posting to?</div>
+    <div class="platform-desc">Select all that apply — you'll get exact clip specs for each one</div>
+    <div class="platform-grid">
+      <label class="platform-chip" onclick="togglePlatform(this)">
+        <input type="checkbox" value="youtube">
+        <span class="platform-icon">▶️</span>
+        <span class="platform-name">YouTube</span>
+        <span class="platform-check">✓</span>
+      </label>
+      <label class="platform-chip" onclick="togglePlatform(this)">
+        <input type="checkbox" value="youtube_shorts">
+        <span class="platform-icon">📱</span>
+        <span class="platform-name">YT Shorts</span>
+        <span class="platform-check">✓</span>
+      </label>
+      <label class="platform-chip" onclick="togglePlatform(this)">
+        <input type="checkbox" value="tiktok">
+        <span class="platform-icon">🎵</span>
+        <span class="platform-name">TikTok</span>
+        <span class="platform-check">✓</span>
+      </label>
+      <label class="platform-chip" onclick="togglePlatform(this)">
+        <input type="checkbox" value="instagram">
+        <span class="platform-icon">📸</span>
+        <span class="platform-name">Instagram</span>
+        <span class="platform-check">✓</span>
+      </label>
+      <label class="platform-chip" onclick="togglePlatform(this)">
+        <input type="checkbox" value="facebook">
+        <span class="platform-icon">👥</span>
+        <span class="platform-name">Facebook</span>
+        <span class="platform-check">✓</span>
+      </label>
+      <label class="platform-chip" onclick="togglePlatform(this)">
+        <input type="checkbox" value="x">
+        <span class="platform-icon">𝕏</span>
+        <span class="platform-name">X / Twitter</span>
+        <span class="platform-check">✓</span>
+      </label>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="generateBtn" onclick="generatePlan()">✦ Build My Shot List & Clip Guide</button>
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Analyzing your content...</div>
+    <div class="loading-sub">Building your shot list and social clip guide</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Results -->
+  <div class="results-container" id="results">
+    <div class="results-header">
+      <div class="results-title">Your Production Plan</div>
+      <div class="results-meta" id="totalScenes">Ready</div>
+    </div>
+
+    <div class="result-tabs">
+      <button class="result-tab active" onclick="switchResultTab(this,'shotlist')">📋 Shot List</button>
+      <button class="result-tab" onclick="switchResultTab(this,'social')" id="socialTabBtn">📱 Social Clips</button>
+    </div>
+
+    <div class="result-panel active" id="panel-shotlist">
+      <div class="scene-list" id="sceneList"></div>
+      <div class="export-guide">
+        <div class="export-title">🎬 How to Build Your Video in CapCut</div>
+        <div class="export-steps">
+          <div class="export-step"><div class="export-step-num">1</div><div class="export-step-text"><strong>Find each image</strong> — Click Google Images on each scene card. Use "Can't find this?" for step-by-step help on any tough one.</div></div>
+          <div class="export-step"><div class="export-step-num">2</div><div class="export-step-text"><strong>Open CapCut</strong> — New project, 1920×1080. Import all photos at once.</div></div>
+          <div class="export-step"><div class="export-step-num">3</div><div class="export-step-text"><strong>Set durations</strong> — Arrange in order, set each photo to the seconds shown on its card.</div></div>
+          <div class="export-step"><div class="export-step-num">4</div><div class="export-step-text"><strong>Add audio</strong> — Drop your voiceover MP3 onto the audio track.</div></div>
+          <div class="export-step"><div class="export-step-num">5</div><div class="export-step-text"><strong>Add text</strong> — Bold white overlays for key stats using CapCut's Text tool.</div></div>
+          <div class="export-step"><div class="export-step-num">6</div><div class="export-step-text"><strong>Export 1080p</strong> — Done. Upload to YouTube.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-panel" id="panel-social">
+      <div class="social-grid" id="socialGrid"></div>
+    </div>
+
+    <div class="download-section">
+      <div class="download-title">Download Your Full Production Plan</div>
+      <div class="download-desc">Every scene, timestamp, search term, and social clip spec saved as a reference file.</div>
+      <button class="btn-download" onclick="downloadPlan()">⬇ Download Full Plan</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let audioFile = null;
+let generatedScenes = [];
+let selectedPlatforms = [];
+let recognition = null;
+let isRecording = false;
+let transcript = '';
+let activeTab = 'script';
+
+const PLATFORM_DATA = {
+  youtube: { name:'YouTube', icon:'▶️', ratio:'16:9', resolution:'1920×1080', maxLength:'12+ minutes', format:'MP4 H.264', tip:'Over 8 minutes unlocks mid-roll ads. Aim for 8-12 min for max revenue.' },
+  youtube_shorts: { name:'YouTube Shorts', icon:'📱', ratio:'9:16', resolution:'1080×1920', maxLength:'60 seconds', format:'MP4', tip:'Hook in first 3 seconds. Great for channel discovery and new subscriber growth.' },
+  tiktok: { name:'TikTok', icon:'🎵', ratio:'9:16', resolution:'1080×1920', maxLength:'10 minutes', format:'MP4', tip:'First 2 seconds determine everything. Use captions — 80% watch on mute.' },
+  instagram: { name:'Instagram Reels', icon:'📸', ratio:'9:16', resolution:'1080×1920', maxLength:'90 seconds', format:'MP4', tip:'Reels get 2x the reach of regular posts. Keep under 60s for best performance.' },
+  facebook: { name:'Facebook', icon:'👥', ratio:'16:9 or 9:16', resolution:'1280×720 min', maxLength:'240 minutes', format:'MP4', tip:'Facebook Watch rewards videos over 3 minutes. Add captions — most autoplay muted.' },
+  x: { name:'X / Twitter', icon:'𝕏', ratio:'16:9', resolution:'1280×720', maxLength:'2 min 20 sec', format:'MP4', tip:'Under 45 seconds performs best. Native video gets 10x more engagement than links.' }
+};
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['script','voice','upload'][i] === tab);
+  });
+  document.querySelectorAll('.input-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+function switchResultTab(btn, tab) {
+  document.querySelectorAll('.result-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.result-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+function togglePlatform(chip) {
+  setTimeout(() => {
+    const cb = chip.querySelector('input');
+    chip.classList.toggle('selected', cb.checked);
+    selectedPlatforms = Array.from(document.querySelectorAll('.platform-chip input:checked')).map(i => i.value);
+  }, 10);
+}
+
+function toggleRecording() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Speech recognition requires Chrome. Please open this tool in Chrome browser.');
+    return;
+  }
+  isRecording ? stopRecording() : startRecording();
+}
+
+function startRecording() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  recognition.onstart = () => {
+    isRecording = true;
+    const btn = document.getElementById('micBtn');
+    btn.classList.add('recording');
+    btn.innerHTML = '⏹<div class="mic-ring"></div>';
+    document.getElementById('micStatus').textContent = 'Listening... speak now';
+    document.getElementById('micStatus').classList.add('recording');
+    document.getElementById('transcriptBox').classList.add('visible');
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    transcript += final;
+    document.getElementById('transcriptText').textContent = transcript + interim;
+  };
+
+  recognition.onerror = (e) => {
+    stopRecording();
+    if (e.error === 'not-allowed') alert('Microphone access denied. Please allow microphone access in Chrome settings.');
+  };
+
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) recognition.stop();
+  const btn = document.getElementById('micBtn');
+  btn.classList.remove('recording');
+  btn.innerHTML = '🎙️<div class="mic-ring"></div>';
+  document.getElementById('micStatus').textContent = 'Stopped. Click to continue recording.';
+  document.getElementById('micStatus').classList.remove('recording');
+}
+
+document.getElementById('audioFile').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    audioFile = file;
+    document.getElementById('audioLoaded').style.display = 'flex';
+    document.getElementById('audioFileName').textContent = file.name;
+  }
+});
+
+const uploadArea = document.getElementById('audioUpload');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault(); uploadArea.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) { audioFile = file; document.getElementById('audioLoaded').style.display='flex'; document.getElementById('audioFileName').textContent=file.name; }
+});
+
+function getContent() {
+  const scriptText = document.getElementById('scriptInput').value.trim();
+  const voiceText = transcript.trim();
+  if (activeTab === 'script' && scriptText) return scriptText;
+  if (activeTab === 'voice' && voiceText) return voiceText;
+  if (scriptText) return scriptText;
+  if (voiceText) return voiceText;
+  return null;
+}
+
+async function generatePlan() {
+  const content = getContent();
+  const mins = parseInt(document.getElementById('durationMin').value) || 0;
+  const secs = parseInt(document.getElementById('durationSec').value) || 0;
+  const totalSecs = (mins * 60) + secs;
+
+  const err = document.getElementById('errorMsg');
+  err.classList.remove('visible');
+
+  if (!content && activeTab !== 'upload') {
+    err.textContent = activeTab === 'voice' ? 'Please record your script using the microphone button first.' : 'Please enter your script text before generating.';
+    err.classList.add('visible'); return;
+  }
+  if (!content && activeTab === 'upload' && !audioFile) {
+    err.textContent = 'Please upload an audio file, or add your script in the Type Script tab.';
+    err.classList.add('visible'); return;
+  }
+
+  const duration = totalSecs > 0 ? totalSecs : 300;
+  const textToAnalyze = content || 'A video about wealth building and financial success';
+
+  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('results').classList.remove('visible');
+
+  try {
+    const scenes = await analyzeScript(textToAnalyze, duration);
+    generatedScenes = scenes;
+    displayResults(scenes, duration);
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+    err.classList.add('visible');
+    console.error('Full error:', e);
+  }
+
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('generateBtn').disabled = false;
+}
+
+async function analyzeScript(script, totalSecs) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      messages: [{ role: 'user', content: `You are a video producer making a shot list for a faceless YouTube video.
+
+Total duration: ${Math.floor(totalSecs/60)}m ${totalSecs%60}s (${totalSecs} seconds total)
+
+Script: "${script}"
+
+Break into scenes. For each: key visual moment, specific Google image search term, proportional duration in seconds, brief reason.
+
+Return ONLY valid JSON array, no markdown, no backticks:
+[{"scene":1,"startTime":"0:00","duration":8,"searchTerm":"very specific search term","why":"one sentence","scriptExcerpt":"first few words..."}]
+
+15-25 scenes. Total duration must equal ${totalSecs} seconds. Search terms must be very specific (e.g. "Rihanna Fenty Beauty 40 shades launch 2017" not "Rihanna").` }]
+    })
+  });
+  const data = await res.json();
+  console.log('API response:', JSON.stringify(data));
+  if (data.error) throw new Error('API Error: ' + data.error.message);
+  if (!data.content) throw new Error('No content in response: ' + JSON.stringify(data));
+  const text = data.content.map(i => i.text||'').join('');
+  console.log('Raw text:', text);
+  return JSON.parse(text.replace(/```json|```/g,'').trim());
+}
+
+async function getCantFindHelp(searchTerm, idx) {
+  const box = document.getElementById('help-'+idx);
+  box.innerHTML = '<div class="help-loading"><div class="help-spinner"></div>Getting step-by-step help...</div>';
+  box.classList.add('visible');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `A YouTube creator needs a photo for this video scene: "${searchTerm}"
+
+They couldn't find it on Google Images. Give exactly 4-5 specific step-by-step instructions to find or create this image right now. Include exact websites, exact search terms, exact steps. Consider: alternative Google terms, Getty Images, AP Images, Wikipedia Commons, news sites, YouTube screenshot, or Dreamina AI to generate a similar scene.
+
+Return ONLY JSON array, no markdown, no backticks:
+[{"step":1,"instruction":"exact instruction"},{"step":2,"instruction":"exact instruction"}]` }]
+      })
+    });
+    const data = await res.json();
+    const steps = JSON.parse(data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim());
+    box.innerHTML = `<div class="help-box-title">🔍 Try these steps instead:</div><div class="help-steps">${steps.map(s=>`<div class="help-step"><div class="help-step-num">${s.step}</div><div class="help-step-text">${s.instruction}</div></div>`).join('')}</div>`;
+  } catch(e) {
+    box.innerHTML = '<div class="help-step-text" style="padding:8px">Try Getty Images, AP Images, or use Dreamina AI to generate a similar cinematic scene.</div>';
+  }
+}
+
+function displayResults(scenes, totalSecs) {
+  const list = document.getElementById('sceneList');
+  list.innerHTML = '';
+  document.getElementById('totalScenes').textContent = `${scenes.length} scenes · ${Math.floor(totalSecs/60)}:${String(totalSecs%60).padStart(2,'0')}`;
+
+  scenes.forEach((scene, i) => {
+    const gUrl = `https://www.google.com/search?q=${encodeURIComponent(scene.searchTerm)}&tbm=isch`;
+    const gtUrl = `https://www.gettyimages.com/photos/${encodeURIComponent(scene.searchTerm)}`;
+    const safe = scene.searchTerm.replace(/'/g,"\\'").replace(/"/g,'\\"');
+    const card = document.createElement('div');
+    card.className = 'scene-card';
+    card.innerHTML = `
+      <div class="scene-top">
+        <div class="scene-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="scene-main">
+          <div class="scene-time">${scene.startTime} — ${scene.duration}s</div>
+          <div class="scene-search">${scene.searchTerm}</div>
+          <div class="scene-why">${scene.why}</div>
+        </div>
+        <div class="scene-duration">${scene.duration}s</div>
+      </div>
+      <div class="scene-actions">
+        <a href="${gUrl}" target="_blank" class="search-link">🔍 Google Images</a>
+        <a href="${gtUrl}" target="_blank" class="search-link">📸 Getty Images</a>
+        <button class="cant-find-btn" onclick="getCantFindHelp('${safe}',${i})">❓ Can't find this?</button>
+      </div>
+      <div class="help-box" id="help-${i}"></div>
+    `;
+    list.appendChild(card);
+  });
+
+  const grid = document.getElementById('socialGrid');
+  grid.innerHTML = '';
+  if (selectedPlatforms.length > 0) {
+    selectedPlatforms.forEach(p => {
+      const d = PLATFORM_DATA[p]; if (!d) return;
+      const card = document.createElement('div');
+      card.className = 'social-card';
+      card.innerHTML = `
+        <div class="social-card-header"><span class="social-icon">${d.icon}</span><span class="social-name">${d.name}</span></div>
+        <div class="social-spec">
+          <div class="spec-row"><span class="spec-key">Aspect Ratio</span><span class="spec-val">${d.ratio}</span></div>
+          <div class="spec-row"><span class="spec-key">Resolution</span><span class="spec-val">${d.resolution}</span></div>
+          <div class="spec-row"><span class="spec-key">Max Length</span><span class="spec-val">${d.maxLength}</span></div>
+          <div class="spec-row"><span class="spec-key">Format</span><span class="spec-val">${d.format}</span></div>
+        </div>
+        <div class="social-tip"><strong>💡 Pro tip:</strong> ${d.tip}</div>
+      `;
+      grid.appendChild(card);
+    });
+    document.getElementById('socialTabBtn').textContent = `📱 Social Clips (${selectedPlatforms.length})`;
+  } else {
+    grid.innerHTML = '<div style="color:var(--text-lighter);font-size:14px;padding:20px;line-height:1.6;">Select platforms above before generating to see exact clip specs for each one here.</div>';
+  }
+
+  document.getElementById('results').classList.add('visible');
+  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function downloadPlan() {
+  if (!generatedScenes.length) return;
+  let c = 'PAPER TO POWER — PRODUCTION PLAN\n' + '='.repeat(50) + '\n\nSHOT LIST\n' + '-'.repeat(30) + '\n\n';
+  generatedScenes.forEach((s,i) => {
+    c += `SCENE ${i+1} — ${s.startTime} (${s.duration} seconds)\nSearch: ${s.searchTerm}\nWhy: ${s.why}\nGoogle: https://www.google.com/search?q=${encodeURIComponent(s.searchTerm)}&tbm=isch\nGetty: https://www.gettyimages.com/photos/${encodeURIComponent(s.searchTerm)}\n\n`;
+  });
+  if (selectedPlatforms.length > 0) {
+    c += '\nSOCIAL CLIP SPECS\n' + '-'.repeat(30) + '\n\n';
+    selectedPlatforms.forEach(p => {
+      const d = PLATFORM_DATA[p]; if (!d) return;
+      c += `${d.name}\n  Ratio: ${d.ratio}\n  Resolution: ${d.resolution}\n  Max Length: ${d.maxLength}\n  Tip: ${d.tip}\n\n`;
+    });
+  }
+  c += '\nCAPCUT STEPS\n' + '-'.repeat(30) + '\n1. Save one photo per scene\n2. New CapCut project 1920x1080\n3. Import photos, arrange in order\n4. Set each photo duration\n5. Add audio track\n6. Add text overlays\n7. Export 1080p\n\nBuilt with Paper to Power\n';
+  const blob = new Blob([c], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'paper-to-power-plan.txt'; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
