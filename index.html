@@ -712,7 +712,7 @@ async function analyzeScript(script, totalSecs) {
     headers: { 'Content-Type': 'application/json', 'x-api-key': document.getElementById('apiKey').value, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 8000,
+      max_tokens: 16000,
       messages: [{ role: 'user', content: `You are a video producer making a shot list for a faceless YouTube video.
 
 Total duration: ${Math.floor(totalSecs/60)}m ${totalSecs%60}s (${totalSecs} seconds total)
@@ -722,7 +722,7 @@ Script: "${script}"
 Break into scenes. For each: key visual moment, specific Google image search term, proportional duration in seconds, brief reason.
 
 Return ONLY valid JSON array, no markdown, no backticks:
-[{"scene":1,"startTime":"0:00","duration":8,"searchTerm":"very specific search term","why":"one sentence","scriptExcerpt":"first few words..."}]
+[{"scene":1,"startTime":"0:00","duration":8,"searchTerm":"Rihanna Fenty Beauty launch 2017","why":"Shows product launch"}]
 
 15-25 scenes. Total duration must equal ${totalSecs} seconds. Search terms must be very specific (e.g. "Rihanna Fenty Beauty 40 shades launch 2017" not "Rihanna").` }]
     })
