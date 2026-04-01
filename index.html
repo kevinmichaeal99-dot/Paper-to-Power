@@ -481,7 +481,17 @@
       </label>
     </div>
   </div>
-
+<div class="card" style="margin-bottom:18px;">
+  <div class="card-header">
+    <div class="card-icon">🔑</div>
+    <div>
+      <div class="card-title">Your API Key</div>
+      <div class="card-desc">Enter your Anthropic API key</div>
+    </div>
+  </div>
+  <input type="password" id="apiKey" placeholder="sk-ant-api03-..." style="width:100%;background:var(--sky);border:1.5px solid var(--sky-deep);border-radius:12px;padding:15px 17px;color:var(--text);font-size:14px;outline:none;">
+</div>
+```
   <button class="btn-primary" id="generateBtn" onclick="generatePlan()">✦ Build My Shot List & Clip Guide</button>
   <div class="error-msg" id="errorMsg"></div>
 
@@ -699,7 +709,7 @@ async function generatePlan() {
 async function analyzeScript(script, totalSecs) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': document.getElementById('apiKey').value, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 8000,
@@ -733,7 +743,7 @@ async function getCantFindHelp(searchTerm, idx) {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': document.getElementById('apiKey').value, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
